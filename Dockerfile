@@ -60,8 +60,8 @@ ENV PATH=/opt/conda/envs/${CONDA_DEFAULT_ENV}/bin:$PATH
 # Defaults
 WORKDIR /workspace
 COPY prott5.py /workspace/prott5.py
+COPY prostt5.py /workspace/prostt5.py
 ENTRYPOINT ["/workspace/prott5.py"]
 
 #ENTRYPOINT ["/usr/bin/tini", "--"]
 #CMD ["bash", "-lc", "EN=$(cat /etc/conda_default_env); echo Activating: $EN; conda activate \"$EN\" && python"]
-
