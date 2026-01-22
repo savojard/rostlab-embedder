@@ -31,4 +31,4 @@ docker run --user $(id -u):$(id -g) \
            -v "${prott5_models}":/rostlab-models \
            -e CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-}" \
            --rm --gpus all \
-           prott5 --model-dir "/rostlab-models/${prott5_model_id}" --out-dir /workspace/output_dir --save-per-residue --pooling none ${shard_flag} /workspace/input-fasta.fa
+           rostlab --model-dir "/rostlab-models/${prott5_model_id}" --out-dir /workspace/output_dir --save-per-residue --pooling none ${shard_flag} /workspace/input-fasta.fa
