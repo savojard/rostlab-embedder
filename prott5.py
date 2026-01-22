@@ -120,6 +120,11 @@ def parse_args():
         required=True,
         help="Output directory to store one .npz per sequence.",
     )
+    p.add_argument(
+        "--shard-accession",
+        action="store_true",
+        help="Shard outputs into two-level subdirectories based on accession prefix.",
+    )
     return p.parse_args()
 
 
@@ -163,6 +168,24 @@ def prepare_prott5_input(seq: str) -> str:
     seq = seq.replace(" ", "").upper()
     seq = re.sub(r"[UZOB]", "X", seq)
     return " ".join(list(seq))
+
+
+def accession_shard_parts(seq_id: str, width: int = 2, levels: int = 2) -> List[str]:
+    parts = []
+    for level in range(levels):
+        start = level * width
+        part = seq_id[start : start + width]
+        if len(part) < width:
+            part = part.ljust(width, "_")
+        parts.append(part)
+    return parts
+
+
+def build_output_path(out_dir: str, seq_id: str, shard_accession: bool) -> str:
+    if not shard_accession:
+        return os.path.join(out_dir, f"{seq_id}.npz")
+    shard_parts = accession_shard_parts(seq_id)
+    return os.path.join(out_dir, *shard_parts, f"{seq_id}.npz")
 
 
 def embed_chunk(
@@ -294,7 +317,8 @@ def main():
                     pooled = per_residue.mean(axis=0, keepdims=False)
 
             # Save per-sequence .npz
-            out_path = os.path.join(args.out_dir, f"{seq_id}.npz")
+            out_path = build_output_path(args.out_dir, seq_id, args.shard_accession)
+            os.makedirs(os.path.dirname(out_path), exist_ok=True)
             save_dict = {"id": np.array(seq_id, dtype=object)}
             if args.pooling != "none" and pooled is not None:
                 save_dict["pooled"] = pooled.astype(np.float32)
@@ -319,4 +343,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
