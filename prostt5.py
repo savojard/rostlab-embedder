@@ -2,7 +2,6 @@
 """
 ProstT5 embedding generator (Hugging Face)
 
-
 Adapted from ProtT5 script to work with Rostlab/ProstT5 family.
 
 Features:
