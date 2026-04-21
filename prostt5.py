@@ -89,6 +89,12 @@ def parse_args():
         help="Computation dtype for inference.",
     )
     p.add_argument(
+        "--output-dtype",
+        choices=["fp16", "fp32", "fp64"],
+        default="fp32",
+        help="NumPy dtype used for floating-point arrays written to .npz files.",
+    )
+    p.add_argument(
         "--max-len",
         type=int,
         default=1024,
@@ -126,6 +132,14 @@ def parse_args():
         help="Shard outputs into two-level subdirectories based on accession prefix.",
     )
     return p.parse_args()
+
+
+def resolve_output_dtype(output_dtype: str) -> np.dtype:
+    return {
+        "fp16": np.float16,
+        "fp32": np.float32,
+        "fp64": np.float64,
+    }[output_dtype]
 
 
 def tokenizer_payload_len(tokenizer, max_len: int) -> int:
@@ -232,6 +246,7 @@ def main():
     device = pick_device(args.device)
     use_bf16 = (args.dtype == "bf16") and (device.type == "cuda")
     torch_dtype = torch.bfloat16 if use_bf16 else torch.float32
+    output_dtype = resolve_output_dtype(args.output_dtype)
 
     seqs = read_fasta(args.fasta)
 
@@ -316,9 +331,9 @@ def main():
             os.makedirs(os.path.dirname(out_path), exist_ok=True)
             save_dict = {"id": np.array(seq_id, dtype=object)}
             if args.pooling != "none" and pooled is not None:
-                save_dict["pooled"] = pooled.astype(np.float32)
+                save_dict["pooled"] = pooled.astype(output_dtype)
             if args.save_per_residue:
-                save_dict["token_embeddings"] = per_residue.astype(np.float32)
+                save_dict["token_embeddings"] = per_residue.astype(output_dtype)
             np.savez_compressed(out_path, **save_dict)
 
             print(
@@ -331,7 +346,8 @@ def main():
 
     print(
         f"\nDone. device={device.type}, dtype={'bf16' if use_bf16 else 'fp32'}, "
-        f"max_len={args.max_len}, payload_len={payload_len}, pooling={args.pooling}"
+        f"output_dtype={args.output_dtype}, max_len={args.max_len}, "
+        f"payload_len={payload_len}, pooling={args.pooling}"
     )
     print(f"Outputs in: {args.out_dir}")
 
