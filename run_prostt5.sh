@@ -34,4 +34,4 @@ docker run --user $(id -u):$(id -g) \
            -e CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-}" \
            --rm --gpus all \
            --entrypoint /workspace/prostt5.py \
-           rostlab --model-dir "/rostlab-models/${prostt5_model_id}" --out-dir /workspace/output_dir --save-per-residue --pooling none --dtype "${dtype}" ${shard_flag} /workspace/input-fasta.fa
+           docker.beverara.biocomp.unibo.it:5000/rostlab --model-dir "/rostlab-models/${prostt5_model_id}" --out-dir /workspace/output_dir --save-per-residue --pooling none --dtype "${dtype}" ${shard_flag} /workspace/input-fasta.fa
